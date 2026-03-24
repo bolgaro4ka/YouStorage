@@ -1,9 +1,11 @@
 import cv2
 import numpy as np
 import struct
-import cry
+import libs.cry as cry
 import config
-import consts
+import libs.consts as consts
+
+from tqdm import tqdm
 
 def create_frame(data: bytes, pxl_size=20, video_width: int = 1920, video_height: int = 1080) -> np.ndarray:
     h, w = video_height, video_width
@@ -37,18 +39,26 @@ def create_first_frame(out: cv2.VideoWriter, pxl_size: int, video_width: int, vi
 
     lines = text.split("\n")
 
-    y = 100
-    for line in lines:
-        (w, h), _ = cv2.getTextSize(line, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
+    base_height = 1080  # эталон (как у тебя сейчас)
+    scale = video_height / base_height
 
-        cv2.putText(card, line, (50, y),
+    font_scale = 1 * scale
+    thickness = max(1, int(2 * scale))
+    line_spacing = int(10 * scale)
+
+    y = int(100 * scale)
+
+    for line in lines:
+        (w, h), _ = cv2.getTextSize(line, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
+
+        cv2.putText(card, line, (int(50 * scale), y),
                     cv2.FONT_HERSHEY_SIMPLEX,
-                    1,
+                    font_scale,
                     (255, 255, 255),
-                    2,
+                    thickness,
                     cv2.LINE_AA)
 
-        y += h + 10  # высота строки + отступ
+        y += h + line_spacing
 
     square_size = 20
     margin = 0
@@ -177,7 +187,7 @@ def encode_file(input_path: str, output_path: str, fps=5, key="secret", pxl_size
     if show_first_frame:
         create_first_frame(out, pxl_size, video_width, video_height, fps, file_path=input_path, show_file_name=show_file_name, show_file_format=show_file_format)
 
-    for i in range(0, len(data_with_header), bytes_per_frame):
+    for i in tqdm(range(0, len(data_with_header), bytes_per_frame), ncols=100, desc="Encoding"):
         chunk = data_with_header[i : i + bytes_per_frame]
         frame = create_frame(chunk, pxl_size, video_width, video_height)
         out.write(frame)

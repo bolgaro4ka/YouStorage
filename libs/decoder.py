@@ -1,8 +1,8 @@
 import cv2
 import struct
-import cry
+import libs.cry as cry
 import config
-
+from tqdm import tqdm
 
 from cv2.typing import MatLike
 
@@ -23,21 +23,19 @@ def decode(video_path, pxl_size : int, save_as="file.docx", key="secret", skip_f
     if not video.isOpened():
         raise IOError(f"Не удалось открыть видео: {video_path}")
     
-    idx = 0
 
     all_bytes = []
+    total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    while True:
+    for idx in tqdm(range(1, total_frames), desc="Decoding", ncols=100):
         ret, frame = video.read()
         if not ret:
             break
-        
-        idx += 1
 
         if (idx == 1) and (skip_first_frame):
             continue
 
-        if (idx == int(video.get(cv2.CAP_PROP_FRAME_COUNT))) and (skip_end_frame):
+        if (idx == total_frames) and (skip_end_frame):
             break
         all_bytes.extend(read_blocks_from_frame(frame, pxl_size))
         
@@ -57,6 +55,4 @@ def decode(video_path, pxl_size : int, save_as="file.docx", key="secret", skip_f
     print(f"Восстановлено {len(file_data)} байт")
 
 if __name__ == "__main__":
-    decode(config.DECODE_FILE_PATH, save_as=config.DECODE_DECRYPTED_FILE_NAME, pxl_size=config.PIXEL_SIZE,
-                skip_first_frame=config.SKIP_FIRST_FRAME, key="secret",
-                skip_end_frame=config.SKIP_END_FRAME)
+    pass

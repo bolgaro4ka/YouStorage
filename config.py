@@ -8,7 +8,7 @@ DECODE_DECRYPTED_FILE_NAME = 'cat_restored.jpg'
 
 # Encoder and Decoder
 
-PIXEL_SIZE = 10
+PIXEL_SIZE = 1
 
 VIDEO_WIDTH = 1920
 VIDEO_HEIGHT = 1080
